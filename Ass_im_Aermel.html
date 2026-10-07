@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ass im Ärmel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1F4F8; --surface:#FFFFFF; --surface-2:#F7F9FC; --ink:#14213A; --muted:#5B6B82; --line:#DCE3EC;
+  --accent:#185FA5; --accent-hover:#0C447C; --accent-soft:#E6F1FB; --accent-line:#B5D4F4; --on-accent:#FFFFFF;
+  --win:#2E7D4F; --win-soft:#E5F4EA; --lose:#B42318; --lose-soft:#FDECEA; --draw:#5B6B82; --draw-soft:#EEF1F5;
+  --card:#FFFFFF; --card-line:#DCE3EC; --red:#C62828; --black:#14213A; --back:#185FA5; --back-2:#2B74BD;
+  --shadow:0 1px 2px rgba(20,33,58,.06),0 8px 24px rgba(20,33,58,.06);
+  --sans:"Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif:"Cormorant Garamond", Garamond, "Times New Roman", serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E131B; --surface:#161D28; --surface-2:#1B2431; --ink:#E7EDF5; --muted:#93A3B8; --line:#273243;
+    --accent:#5B9BE0; --accent-hover:#85B7EB; --accent-soft:#16283D; --accent-line:#24476E; --on-accent:#0B1A2C;
+    --win:#6CC890; --win-soft:#15291E; --lose:#F08A80; --lose-soft:#2E1817; --draw:#93A3B8; --draw-soft:#1F2733;
+    --card:#F7F9FC; --card-line:#F7F9FC; --back:#2B74BD; --back-2:#3A84CF;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E131B; --surface:#161D28; --surface-2:#1B2431; --ink:#E7EDF5; --muted:#93A3B8; --line:#273243;
+  --accent:#5B9BE0; --accent-hover:#85B7EB; --accent-soft:#16283D; --accent-line:#24476E; --on-accent:#0B1A2C;
+  --win:#6CC890; --win-soft:#15291E; --lose:#F08A80; --lose-soft:#2E1817; --draw:#93A3B8; --draw-soft:#1F2733;
+  --card:#F7F9FC; --card-line:#F7F9FC; --back:#2B74BD; --back-2:#3A84CF;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;min-height:100vh}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent-line);outline-offset:2px}
+.hidden{display:none !important}
+
+/* ---------- Login ---------- */
+.login{min-height:100vh;display:grid;place-items:center;padding:24px}
+.login-box{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:32px 28px;box-shadow:var(--shadow)}
+.login h1{font-weight:700;font-size:clamp(2rem,7vw,2.6rem);line-height:1.05;margin:0 0 .5rem;letter-spacing:-.02em}
+.login .fan{display:flex;margin:0 0 22px;height:84px}
+.login .fan .card{width:56px;height:80px;margin-right:-22px;font-size:1.1rem}
+.login .fan .card .mid{font-size:1.7rem}
+.login .fan .card .c{font-size:.95rem}
+.login .fan .card:nth-child(1){transform:rotate(-10deg) translateY(4px)}
+.login .fan .card:nth-child(2){transform:rotate(-2deg)}
+.login .fan .card:nth-child(3){transform:rotate(7deg) translateY(4px)}
+.login p{color:var(--muted);margin:0 0 22px}
+label{display:block;font-weight:600;font-size:.92rem;margin-bottom:6px}
+.field{display:flex;gap:8px}
+input[type=text],input[type=number]{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.btn{border:0;border-radius:10px;padding:11px 18px;font-weight:600;cursor:pointer;background:var(--accent);color:var(--on-accent);white-space:nowrap;transition:background .15s}
+.btn:hover:not(:disabled){background:var(--accent-hover)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.msg{min-height:1.5em;margin-top:8px;font-size:.92rem;color:var(--muted)}
+.msg.err{color:var(--lose)} .msg.ok{color:var(--win)}
+
+/* ---------- App ---------- */
+.app{max-width:1040px;margin:0 auto;padding:18px 18px 40px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.brand{font-weight:700;font-size:1.3rem;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.brand::before{content:"♠";display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--on-accent);font-size:.95rem}
+.who{color:var(--muted);font-size:.95rem}
+.who strong{color:var(--ink)}
+.who button{background:none;border:0;color:var(--accent);cursor:pointer;padding:0 0 0 10px;font-weight:600}
+.who button:disabled{color:var(--muted);cursor:not-allowed}
+.layout{display:flex;flex-direction:column;gap:16px}
+
+/* table */
+.table{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px clamp(16px,4vw,32px) 24px;box-shadow:var(--shadow)}
+.money{display:flex;justify-content:space-between;gap:16px}
+.money > div{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:10px 16px;min-width:150px}
+.money .k{font-size:.82rem;color:var(--muted);font-weight:600}
+.money .v{font-weight:700;font-size:clamp(1.5rem,4.5vw,2rem);line-height:1.15;font-variant-numeric:tabular-nums}
+.money .bet{text-align:right}
+.money .bet .v{color:var(--accent)}
+.bet-split{font-size:.8rem;color:var(--muted)}
+.duel{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin:24px 0 14px;background:var(--accent-soft);border-radius:16px;padding:22px 12px}
+.seat{display:flex;flex-direction:column;align-items:center;gap:10px}
+.seat .name{font-size:.85rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.seat .val{font-size:.85rem;color:var(--muted);min-height:1.3em;text-align:center}
+.vs{font-weight:700;color:var(--accent);background:var(--surface);border:1px solid var(--accent-line);border-radius:999px;padding:4px 12px;font-size:.85rem}
+.result{font-weight:800;font-size:clamp(1.8rem,6vw,2.4rem);text-align:center;min-height:1.3em;line-height:1.2;letter-spacing:.04em}
+.result.win,.result.fold{color:var(--win)} .result.lose{color:var(--lose)} .result.draw{color:var(--draw)}
+.result-sub{text-align:center;color:var(--muted);min-height:1.5em;font-size:.95rem}
+.decision{text-align:center;font-size:.85rem;color:var(--accent);min-height:1.4em;margin:6px 0 4px;font-variant-numeric:tabular-nums}
+
+/* cards */
+.slot{width:clamp(96px,20vw,124px);aspect-ratio:5/7;perspective:800px}
+.flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.3,.7,.3,1)}
+.flip.shown{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px}
+.back{background:var(--back);background-image:repeating-linear-gradient(45deg,var(--back) 0 7px,var(--back-2) 7px 14px);border:5px solid #fff;box-shadow:0 4px 14px rgba(24,95,165,.25)}
+.front{transform:rotateY(180deg)}
+.card{background:var(--card);color:var(--black);border:1px solid var(--card-line);border-radius:12px;box-shadow:0 4px 14px rgba(20,33,58,.12);position:relative;width:100%;height:100%;font-weight:700}
+.card.red{color:var(--red)}
+.card .c{position:absolute;line-height:1;text-align:center;font-size:clamp(1rem,3.2vw,1.3rem)}
+.card .tl{top:8px;left:9px} .card .br{bottom:8px;right:9px;transform:rotate(180deg)}
+.card .c small{display:block;font-size:.85em;margin-top:2px}
+.card .mid{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(2.2rem,7vw,3rem)}
+.slot.empty .flip{opacity:.45}
+
+/* chips */
+.tray{border-top:1px solid var(--line);padding-top:16px;margin-top:10px}
+.tray-label{font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.chip{width:56px;height:56px;border-radius:50%;cursor:pointer;font-weight:700;font-size:.95rem;display:grid;place-items:center;
+  background:var(--c);color:var(--t,#fff);border:3px dashed rgba(255,255,255,.7);box-shadow:0 0 0 2px var(--c),0 3px 0 2px rgba(20,33,58,.18);transition:transform .12s}
+.chip span{display:contents}
+.chip:hover:not(:disabled){transform:translateY(-3px)}
+.chip:active:not(:disabled){transform:translateY(0)}
+.chip:disabled{opacity:.3;cursor:not-allowed}
+.chip[data-v="1"]{--c:#FFFFFF;--t:#185FA5;border-color:#B5D4F4}
+.chip[data-v="5"]{--c:#85B7EB;--t:#042C53}
+.chip[data-v="10"]{--c:#378ADD}
+.chip[data-v="20"]{--c:#185FA5}
+.chip[data-v="50"]{--c:#042C53}
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.start{font-size:1.02rem;padding:13px 26px}
+.clear{background:transparent;color:var(--accent);border:1px solid var(--accent-line)}
+.clear:hover:not(:disabled){background:var(--accent-soft)}
+
+/* panels below */
+.side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);grid-template-areas:"cash hist";gap:16px;align-items:start}
+.side .cash{grid-area:cash} .side .rules-panel{grid-area:rules} .side .hist-panel{grid-area:hist}
+@media (max-width:760px){.side{grid-template-columns:minmax(0,1fr);grid-template-areas:"cash" "hist"}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.panel h2{font-weight:700;font-size:1.05rem;margin:0 0 12px}
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;padding:7px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(20,33,58,.12)}
+.hist{list-style:none;margin:0;padding:0;max-height:430px;overflow:auto}
+.hist li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.hist li:last-child{border-bottom:0}
+.tag{font-weight:700;font-size:.75rem;padding:3px 8px;border-radius:6px;min-width:52px;text-align:center}
+.tag.WIN,.tag.FOLD{background:var(--win-soft);color:var(--win)}
+.tag.LOSE{background:var(--lose-soft);color:var(--lose)}
+.tag.DRAW{background:var(--draw-soft);color:var(--draw)}
+.hist .detail{font-size:.86rem;color:var(--muted)}
+.hist .amt{font-weight:700;font-variant-numeric:tabular-nums}
+.amt.WIN,.amt.FOLD{color:var(--win)} .amt.LOSE{color:var(--lose)} .amt.DRAW{color:var(--muted)}
+.empty-note{color:var(--muted);font-size:.92rem;margin:0}
+.storage-note{color:var(--muted);font-size:.8rem;margin-top:14px}
+@media (max-width:520px){.money > div{min-width:0;flex:1}}
+/* klassische Schrift für Titel, Beträge, Ergebnis und Karten */
+.login h1,.brand,.money .v,.result,.card,.panel h2{font-family:var(--serif)}
+.login h1{font-weight:700;font-size:clamp(2.4rem,8vw,3.1rem);letter-spacing:0}
+.brand{font-weight:700;font-size:1.55rem;letter-spacing:0}
+.brand::before{font-family:var(--sans);font-size:.85rem}
+.money .v{font-weight:700;font-size:clamp(1.8rem,5.5vw,2.4rem);letter-spacing:.01em}
+.result{font-weight:700;font-size:clamp(2.2rem,7vw,2.9rem);letter-spacing:.12em}
+.card{font-weight:700}
+.card .c{font-size:clamp(1.2rem,3.8vw,1.55rem)}
+.panel h2{font-weight:700;font-size:1.35rem}
+.seat .name{letter-spacing:.18em;font-size:.8rem}
+.btn{letter-spacing:.02em;font-weight:500}
+
+@media (prefers-reduced-motion:reduce){.flip,.chip,.btn{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- ============ Anmeldung (Function 1) ============ -->
+<section class="login" id="loginView">
+  <div class="login-box">
+    <div class="fan" aria-hidden="true" id="fan"></div>
+    <h1>Ass im Ärmel</h1>
+    <p>Gib deinen Benutzernamen ein.</p>
+    <form id="loginForm" novalidate>
+      <label for="username">Benutzername</label>
+      <div class="field">
+        <input type="text" id="username" autocomplete="username" maxlength="20" placeholder="z. B. jakob_m">
+        <button class="btn" type="submit" id="loginBtn">Spielen</button>
+      </div>
+      <div class="msg" id="loginMsg" role="status"></div>
+    </form>
+  </div>
+</section>
+
+<!-- ============ Spiel ============ -->
+<main class="app hidden" id="gameView">
+  <header class="top">
+    <div class="brand">Ass im Ärmel</div>
+    <div class="who">Angemeldet als <strong id="whoName"></strong><button id="logoutBtn" type="button">Abmelden</button></div>
+  </header>
+
+  <div class="layout">
+    <section class="table" aria-label="Spieltisch">
+      <div class="money">
+        <div><div class="k">Guthaben</div><div class="v" id="balance">0 €</div><div class="bet-split" id="balSplit"></div></div>
+        <div class="bet"><div class="k">Einsatz</div><div class="v" id="bet">0 €</div><div class="bet-split" id="betSplit"></div></div>
+      </div>
+
+      <div class="duel">
+        <div class="seat">
+          <div class="name">Du</div>
+          <div class="slot empty" id="playerSlot"></div>
+          <div class="val" id="playerVal"></div>
+        </div>
+        <div class="vs">gegen</div>
+        <div class="seat">
+          <div class="name">Dealer</div>
+          <div class="slot empty" id="dealerSlot"></div>
+          <div class="val" id="dealerVal"></div>
+        </div>
+      </div>
+
+      <div class="result" id="result" aria-live="polite"></div>
+      <div class="result-sub" id="resultSub"></div>
+      <div class="decision" id="decision"></div>
+
+      <div class="tray">
+        <div class="tray-label" id="trayLabel"></div>
+        <div class="chips" id="chips">
+          <button class="chip" data-v="1" type="button" aria-label="1 Euro setzen"><span>1</span></button>
+          <button class="chip" data-v="5" type="button" aria-label="5 Euro setzen"><span>5</span></button>
+          <button class="chip" data-v="10" type="button" aria-label="10 Euro setzen"><span>10</span></button>
+          <button class="chip" data-v="20" type="button" aria-label="20 Euro setzen"><span>20</span></button>
+          <button class="chip" data-v="50" type="button" aria-label="50 Euro setzen"><span>50</span></button>
+        </div>
+        <div class="actions">
+          <button class="btn start" id="startBtn" type="button">Runde starten · 10 € Blind</button>
+          <button class="btn clear" id="clearBtn" type="button">Zusatz zurücksetzen</button>
+        </div>
+        <div class="msg" id="tableMsg" role="status"></div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <!-- Function 5: Guthaben verwalten -->
+      <section class="panel cash">
+        <h2>Guthaben verwalten</h2>
+        <div class="seg" role="group" aria-label="Art der Buchung">
+          <button type="button" id="modeIn" aria-pressed="true">Einzahlen</button>
+          <button type="button" id="modeOut" aria-pressed="false">Auszahlen</button>
+        </div>
+        <form id="cashForm" novalidate>
+          <label for="cashAmount" id="cashLabel">Betrag einzahlen (€)</label>
+          <div class="field">
+            <input type="number" id="cashAmount" min="1" step="1" inputmode="numeric" placeholder="50">
+            <button class="btn" type="submit" id="cashBtn">Einzahlen</button>
+          </div>
+          <div class="msg" id="cashMsg" role="status"></div>
+        </form>
+      </section>
+
+      <!-- Spielhistorie -->
+      <section class="panel hist-panel">
+        <h2>Deine letzten Runden</h2>
+        <ul class="hist" id="history"></ul>
+        <p class="empty-note" id="histEmpty">Noch keine Runden gespielt. Setz einen Einsatz und starte die erste Runde.</p>
+        <p class="storage-note" id="storageNote"></p>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<script>
+/* =====================================================================
+   DATENSPEICHER
+   Zwei "Tabellen" wie in der Projektbeschreibung:
+     user_data    -> ein Eintrag pro Spieler  {username, balance, created_at}
+     game_history -> ein Eintrag pro Runde    {username, bet, result, amount,
+                                               player_card, dealer_card, created_at}
+   Primär: Artifact-Datenbank (db). Fallback: localStorage im Browser.
+   ===================================================================== */
+const START_BALANCE = 100;
+const MAX_DEPOSIT = 10000;
+
+function localStore(){
+  const KEY = "kartenduell_db";
+  let mem = {user_data:{}, game_history:[]};
+  try{ const raw = localStorage.getItem(KEY); if(raw) mem = JSON.parse(raw); }catch(e){}
+  const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){} };
+  return {
+    kind:"local",
+    async getUser(id){ return mem.user_data[id] || null; },
+    async createUser(id, username){
+      const row = {username, balance:START_BALANCE, created_at:Date.now()};
+      mem.user_data[id] = row; save(); return row;
+    },
+    async setBalance(id, balance){ mem.user_data[id].balance = balance; save(); },
+    async addHistory(row){ mem.game_history.push(row); save(); },
+    async listHistory(id){
+      return mem.game_history.filter(r => r.user_id === id)
+        .sort((a,b) => b.created_at - a.created_at).slice(0,25);
+    }
+  };
+}
+
+function dbStore(db){
+  return {
+    kind:"db",
+    async getUser(id){
+      const s = await db.doc("user_data/" + id).get();
+      return s.exists ? s.data() : null;
+    },
+    async createUser(id, username){
+      const row = {username, balance:START_BALANCE, created_at:Date.now()};
+      await db.doc("user_data/" + id).set(row); return row;
+    },
+    async setBalance(id, balance){ await db.doc("user_data/" + id).update({balance}); },
+    async addHistory(row){ await db.collection("game_history").add(row); },
+    async listHistory(id){
+      const snap = await db.collection("game_history")
+        .where("user_id","==",id).orderBy("created_at","desc").limit(25).get();
+      return snap.docs.map(d => d.data());
+    }
+  };
+}
+
+let storePromise = null;
+function getStore(){
+  if(!storePromise){
+    storePromise = (async () => {
+      try{
+        if(window.claude && typeof window.claude.use === "function"){
+          const db = await window.claude.use("db");
+          if(db) return dbStore(db);
+        }
+      }catch(e){}
+      return localStore();
+    })();
+  }
+  return storePromise;
+}
+
+/* =====================================================================
+   KARTEN
+   Werte: 2–10 = Zahlenwert, Bube 11, Dame 12, König 13, Ass 14
+   ===================================================================== */
+const SUITS = [{s:"♠",red:false},{s:"♥",red:true},{s:"♦",red:true},{s:"♣",red:false}];
+const RANKS = [
+  {r:"2",v:2},{r:"3",v:3},{r:"4",v:4},{r:"5",v:5},{r:"6",v:6},{r:"7",v:7},{r:"8",v:8},
+  {r:"9",v:9},{r:"10",v:10},{r:"B",v:11,n:"Bube"},{r:"D",v:12,n:"Dame"},{r:"K",v:13,n:"König"},{r:"A",v:14,n:"Ass"}
+];
+function randInt(n){
+  const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n;
+}
+// Function 2: zwei verschiedene Karten aus einem 52er-Deck ziehen
+function drawTwo(){
+  const deck = [];
+  for(const s of SUITS) for(const r of RANKS) deck.push({...r, suit:s.s, red:s.red});
+  const i = randInt(deck.length);
+  const player = deck.splice(i,1)[0];
+  const dealer = deck[randInt(deck.length)];
+  return {player, dealer};
+}
+function cardLabel(c){ return (c.n || c.r) + " " + c.suit; }
+function cardHTML(c){
+  return `<div class="card${c.red?" red":""}">
+    <div class="c tl">${c.r}<small>${c.suit}</small></div>
+    <div class="mid">${c.suit}</div>
+    <div class="c br">${c.r}<small>${c.suit}</small></div></div>`;
+}
+function slotHTML(c){
+  return `<div class="flip${c?" shown":""}"><div class="face back"></div><div class="face front">${c?cardHTML(c):""}</div></div>`;
+}
+
+/* =====================================================================
+   SPIELZUSTAND
+   ===================================================================== */
+const state = {userId:null, username:null, balance:0, bet:0, busy:false, cashMode:"in"};
+const $ = id => document.getElementById(id);
+const euro = n => n.toLocaleString("de-AT") + " €";
+
+function setMsg(el, text, kind){ el.textContent = text || ""; el.className = "msg" + (kind ? " " + kind : ""); }
+
+
+/* ---------- Function 1: Spieler anmelden (FR-01 bis FR-04) ---------- */
+$("fan").innerHTML = [
+  {r:"A",suit:"♠",red:false},{r:"K",suit:"♥",red:true},{r:"9",suit:"♦",red:true}
+].map(cardHTML).join("");
+
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = $("username").value.trim();
+  if(!/^[A-Za-z0-9_-]{3,20}$/.test(name)){
+    setMsg($("loginMsg"), "Der Benutzername braucht 3–20 Zeichen: Buchstaben ohne Umlaute, Ziffern, _ oder -.", "err");
+    return;
+  }
+  const id = name.toLowerCase();
+  $("loginBtn").disabled = true;
+  setMsg($("loginMsg"), "Spielerdaten werden geladen …");
+  try{
+    const store = await getStore();
+    let user = await store.getUser(id);              // FR-02: in der DB nachsehen
+    if(!user) user = await store.createUser(id, name); // FR-03: neu anlegen mit 100 €
+    state.userId = id; state.username = user.username;  // FR-04: Daten laden
+    state.balance = Number(user.balance) || 0; state.raise = 0; state.phase = "idle";
+    $("storageNote").textContent = store.kind === "db"
+      ? "Daten werden in der Datenbank dieses Artifacts gespeichert."
+      : "Daten werden lokal in diesem Browser gespeichert.";
+    $("loginView").classList.add("hidden");
+    $("gameView").classList.remove("hidden");
+    resetTable();
+    render();
+    await loadHistory();
+    if(state.balance < BLIND) setMsg($("tableMsg"), `Für die Blind brauchst du mindestens ${euro(BLIND)}. Zahl rechts Guthaben ein.`);
+  }catch(err){
+    setMsg($("loginMsg"), "Die Spielerdaten konnten nicht geladen werden. Prüf deine Verbindung und versuch es nochmal.", "err");
+  }finally{
+    $("loginBtn").disabled = false;
+  }
+});
+
+$("logoutBtn").addEventListener("click", () => {
+  Object.assign(state, {userId:null, username:null, balance:0, raise:0, phase:"idle"});
+  $("gameView").classList.add("hidden");
+  $("loginView").classList.remove("hidden");
+  $("username").value = ""; setMsg($("loginMsg"), "");
+  $("username").focus();
+});
+
+/* ---------- Dealer-Wahrscheinlichkeiten (Function 5) ---------- */
+const BLIND = 10;
+const BASE_CALL = {14:100,13:90,12:85,11:80,10:75,9:65,8:60,7:55,6:45,5:40,4:25,3:15,2:0};
+function callChance(dealerValue, raise){
+  if(dealerValue === 14) return 100;                       // Ass: kein Abzug
+  const cut = Math.min(30, Math.floor(raise / 10) * 2);    // −2 % pro volle 10 €, max. 30
+  return Math.max(0, BASE_CALL[dealerValue] - cut);
+}
+
+/* ---------- Ablauf einer Runde ----------
+   phase "idle"  : Spieler startet die Runde (Blind 10 €)
+   phase "raise" : eigene Karte sichtbar, Dealer verdeckt, Zusatzeinsatz wählen
+   phase "busy"  : Dealer entscheidet, Ergebnis wird gespeichert            */
+state.phase = "idle"; state.raise = 0; state.round = null;
+
+function sleep(ms){ return new Promise(r => setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : ms)); }
+
+function render(){
+  const inRound = state.phase !== "idle";
+  // Während der Runde wird der Einsatz sofort vom angezeigten Guthaben abgezogen
+  $("balance").textContent = euro(inRound ? state.balance - BLIND - state.raise : state.balance);
+  $("balSplit").textContent = inRound ? `vor der Runde ${euro(state.balance)}` : "";
+  const total = inRound ? BLIND + state.raise : 0;
+  $("bet").textContent = euro(total);
+  $("betSplit").textContent = inRound ? `Blind ${euro(BLIND)} + Zusatz ${euro(state.raise)}` : "";
+  $("whoName").textContent = state.username || "";
+  const free = state.balance - BLIND - state.raise;   // was noch zusätzlich gesetzt werden kann
+  document.querySelectorAll(".chip").forEach(ch => {
+    ch.disabled = state.phase !== "raise" || Number(ch.dataset.v) > free;
+  });
+  $("chips").classList.toggle("hidden", state.phase === "idle");
+  $("clearBtn").classList.toggle("hidden", state.phase === "idle");
+  $("clearBtn").disabled = state.phase !== "raise" || state.raise === 0;
+  $("trayLabel").textContent = state.phase === "idle"
+    ? "Starte eine Runde. Dafür werden 10 € als Blind gesetzt."
+    : "Deine Karte liegt offen. Erhöhe mit den Chips oder deck ohne Zusatz auf.";
+  const sb = $("startBtn");
+  sb.disabled = state.phase === "busy";
+  sb.textContent = state.phase === "idle" ? `Runde starten · ${euro(BLIND)} Blind`
+    : state.raise > 0 ? `${euro(state.raise)} zusätzlich setzen` : "Ohne Zusatz aufdecken";
+  $("logoutBtn").disabled = state.phase !== "idle";
+}
+
+document.querySelectorAll(".chip").forEach(ch => ch.addEventListener("click", () => {
+  const v = Number(ch.dataset.v);
+  if(BLIND + state.raise + v > state.balance){
+    setMsg($("tableMsg"), `Mehr geht nicht: dein Gesamteinsatz darf dein Guthaben von ${euro(state.balance)} nicht übersteigen.`);
+    return;
+  }
+  state.raise += v; setMsg($("tableMsg"), ""); render();
+}));
+$("clearBtn").addEventListener("click", () => { state.raise = 0; setMsg($("tableMsg"), ""); render(); });
+
+function resetTable(){
+  $("playerSlot").innerHTML = slotHTML(null); $("dealerSlot").innerHTML = slotHTML(null);
+  $("playerSlot").classList.add("empty"); $("dealerSlot").classList.add("empty");
+  $("playerVal").textContent = ""; $("dealerVal").textContent = "";
+  $("result").textContent = ""; $("result").className = "result";
+  $("resultSub").textContent = ""; $("decision").textContent = "";
+}
+
+$("startBtn").addEventListener("click", () => {
+  if(state.phase === "idle") startRound();
+  else if(state.phase === "raise") finishRound();
+});
+
+/* Function 2 + 3: Blind setzen, Karten ziehen, nur die eigene Karte zeigen */
+async function startRound(){
+  if(state.balance < BLIND){
+    setMsg($("tableMsg"), `Für die Blind brauchst du mindestens ${euro(BLIND)}. Zahl rechts Guthaben ein.`); return;
+  }
+  setMsg($("tableMsg"), "");
+  resetTable();
+  state.round = drawTwo(); state.raise = 0; state.phase = "busy"; render();
+  const {player, dealer} = state.round;
+  $("playerSlot").classList.remove("empty"); $("dealerSlot").classList.remove("empty");
+  $("playerSlot").querySelector(".front").innerHTML = cardHTML(player);
+  $("dealerSlot").querySelector(".front").innerHTML = cardHTML(dealer);
+  await sleep(120);
+  $("playerSlot").querySelector(".flip").classList.add("shown");
+  await sleep(450);
+  $("playerVal").textContent = `${cardLabel(player)} · Wert ${player.v}`;
+  $("dealerVal").textContent = "verdeckt";
+  state.phase = "raise"; render();
+}
+
+/* Function 4–7: Zusatzeinsatz, Dealer-Entscheidung, Vergleich, Abrechnung */
+async function finishRound(){
+  const {player, dealer} = state.round;
+  const raise = state.raise, total = BLIND + raise;
+  if(total > state.balance){ setMsg($("tableMsg"), "Dein Guthaben reicht für diesen Einsatz nicht."); return; }
+  state.phase = "busy"; render();
+
+  // Function 5: Entscheidung des Dealers
+  let calls = true, chance = 100, roll = null;
+  if(raise > 0){
+    chance = callChance(dealer.v, raise);
+    roll = randInt(100) + 1;              // Zufallszahl 1–100
+    calls = roll <= chance;
+  }
+
+  // Function 6 + 7: Ergebnis und Betrag
+  let result, payout;
+  if(!calls){ result = "FOLD"; payout = total + BLIND; }
+  else if(player.v > dealer.v){ result = "WIN"; payout = 2 * total; }
+  else if(player.v < dealer.v){ result = "LOSE"; payout = 0; }
+  else { result = "DRAW"; payout = total; }
+  const amount = payout - total;
+  const oldBalance = state.balance, newBalance = oldBalance + amount;
+
+  $("decision").textContent = raise > 0
+    ? (calls ? "Der Dealer geht mit" : "Der Dealer steigt aus")
+    : "Kein Zusatzeinsatz – der Dealer geht automatisch mit";
+  await sleep(500);
+  $("dealerSlot").querySelector(".flip").classList.add("shown");
+  await sleep(550);
+  $("dealerVal").textContent = `${cardLabel(dealer)} · Wert ${dealer.v}`;
+
+  // NFR-05: erst speichern, dann anzeigen
+  try{
+    const store = await getStore();
+    await store.setBalance(state.userId, newBalance);
+    try{
+      await store.addHistory({
+        user_id: state.userId, username: state.username, blind: BLIND, raise, bet: total,
+        result, amount, player_card: cardLabel(player), dealer_card: cardLabel(dealer), created_at: Date.now()
+      });
+    }catch(histErr){
+      try{ await store.setBalance(state.userId, oldBalance); }catch(e){}
+      throw histErr;
+    }
+    state.balance = newBalance;
+    const res = $("result");
+    res.textContent = result; res.className = "result " + result.toLowerCase();
+    $("resultSub").textContent =
+      result === "FOLD" ? `Der Dealer steigt aus. Du bekommst ${euro(total)} zurück und gewinnst die Blind: +${euro(BLIND)}.` :
+      result === "WIN"  ? `Auszahlung ${euro(payout)} – du gewinnst ${euro(amount)}.` :
+      result === "LOSE" ? `Du verlierst deinen Einsatz von ${euro(total)}.` :
+                          `Gleichstand – dein Einsatz von ${euro(total)} wird zurückerstattet.`;
+    if(state.balance < BLIND) setMsg($("tableMsg"), `Dein Guthaben reicht nicht mehr für die Blind von ${euro(BLIND)}. Zahl rechts Guthaben ein.`);
+    await loadHistory();
+  }catch(err){
+    setMsg($("tableMsg"), "Das Ergebnis konnte nicht gespeichert werden. Dein Guthaben bleibt unverändert bei " + euro(oldBalance) + ".");
+    $("result").textContent = ""; $("resultSub").textContent = "";
+  }finally{
+    state.raise = 0; state.round = null; state.phase = "idle"; render();
+  }
+}
+
+/* ---------- Historie anzeigen (FR-20) ---------- */
+async function loadHistory(){
+  const ul = $("history");
+  try{
+    const store = await getStore();
+    const rows = await store.listHistory(state.userId);
+    ul.innerHTML = "";
+    $("histEmpty").classList.toggle("hidden", rows.length > 0);
+    for(const r of rows){
+      const li = document.createElement("li");
+      const sign = r.amount > 0 ? "+" : r.amount < 0 ? "−" : "±";
+      li.innerHTML = `<span class="tag ${r.result}"></span><span class="detail"></span><span class="amt ${r.result}"></span>`;
+      li.children[0].textContent = r.result;
+      li.children[1].textContent = `${r.player_card} gegen ${r.dealer_card} · Einsatz ${euro(r.bet)}` + (r.raise ? ` (davon ${euro(r.raise)} Zusatz)` : "");
+      li.children[2].textContent = `${sign}${euro(Math.abs(r.amount))}`;
+      ul.appendChild(li);
+    }
+  }catch(e){
+    ul.innerHTML = ""; $("histEmpty").classList.remove("hidden");
+    $("histEmpty").textContent = "Die Spielhistorie konnte nicht geladen werden.";
+  }
+}
+
+/* ---------- Function 5: Guthaben verwalten (FR-21 bis FR-24, NFR-09) ---------- */
+function setCashMode(m){
+  state.cashMode = m;
+  $("modeIn").setAttribute("aria-pressed", m === "in");
+  $("modeOut").setAttribute("aria-pressed", m === "out");
+  $("cashLabel").textContent = m === "in" ? "Betrag einzahlen (€)" : "Betrag auszahlen (€)";
+  $("cashBtn").textContent = m === "in" ? "Einzahlen" : "Auszahlen";
+  setMsg($("cashMsg"), "");
+}
+$("modeIn").addEventListener("click", () => setCashMode("in"));
+$("modeOut").addEventListener("click", () => setCashMode("out"));
+
+$("cashForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if(state.phase !== "idle"){
+    setMsg($("cashMsg"), "Während einer laufenden Runde kannst du nicht ein- oder auszahlen.", "err"); return;
+  }
+  const raw = $("cashAmount").value.trim();
+  const amt = Number(raw);
+  if(!raw || !Number.isInteger(amt) || amt < 1){
+    setMsg($("cashMsg"), "Gib einen ganzen Betrag ab 1 € ein.", "err"); return;
+  }
+  if(state.cashMode === "in" && amt > MAX_DEPOSIT){
+    setMsg($("cashMsg"), `Pro Einzahlung sind höchstens ${euro(MAX_DEPOSIT)} möglich.`, "err"); return;
+  }
+  if(state.cashMode === "out" && amt > state.balance){
+    setMsg($("cashMsg"), `Du kannst höchstens dein Guthaben von ${euro(state.balance)} auszahlen.`, "err"); return;
+  }
+  const newBalance = state.cashMode === "in" ? state.balance + amt : state.balance - amt;
+  $("cashBtn").disabled = true;
+  try{
+    const store = await getStore();
+    await store.setBalance(state.userId, newBalance);   // FR-22: speichern
+    state.balance = newBalance;
+    setMsg($("cashMsg"), state.cashMode === "in"
+      ? `${euro(amt)} eingezahlt. Neues Guthaben: ${euro(newBalance)}.`
+      : `${euro(amt)} ausgezahlt. Neues Guthaben: ${euro(newBalance)}.`, "ok");
+    $("cashAmount").value = "";
+    if(state.balance >= BLIND) setMsg($("tableMsg"), "");
+    render();
+  }catch(err){
+    setMsg($("cashMsg"), "Die Buchung konnte nicht gespeichert werden. Dein Guthaben bleibt unverändert.", "err");
+  }finally{
+    $("cashBtn").disabled = false;
+  }
+});
+
+getStore(); // Verbindung zur Datenbank schon im Hintergrund aufbauen
+render();
+</script>
+</body>
+</html>
